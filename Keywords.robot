@@ -1,15 +1,22 @@
 # +
 *** Keywords ***
-Open the robot order website
-    Open Available Browser    https://robotsparebinindustries.com/#/robot-order 
+Get the URL and Open the robot order website
+  ${url}=    Get Secret    website
+    Open Available Browser    ${url}[url]
+    Maximize Browser Window
+
+    Add text input    url    label=input CSV URL
+    ${response}=      Run dialog
+
+    [Return]    ${response.url}
 
 Get orders
-    Download        https://robotsparebinindustries.com/orders.csv           overwrite=True
-    ${table}=       Read Table From Csv       orders.csv      dialect=excel  header=True
-    FOR     ${row}  IN  @{table}
-        Log     ${row}
-    END
-    [Return]    ${table}
+    [Arguments]    ${CSV_URL}
+
+    Download      ${CSV_URL}             overwrite=True
+    ${orders}=    Read table from CSV    orders.csv    header=True
+
+    [Return]    ${orders}
 
 
 Close the annoying modal
@@ -42,18 +49,18 @@ Store the receipt as a PDF file
     [Arguments]    ${order_number}
     Wait Until Element Is Visible    id:order-completion
     ${order_number}=    Get Text    xpath://div[@id="receipt"]/p[1]
-    Log  "ELEBELE" ${order_number}
+    #Log    ${order_number}
     ${receipt_html}=    Get Element Attribute    id:order-completion    outerHTML
     Html To Pdf    ${receipt_html}    ${CURDIR}${/}output${/}receipts${/}${order_number}.pdf
     [Return]    ${CURDIR}${/}output${/}receipts${/}${order_number}.pdf
-
+   
 
 Take a screenshot of the robot
    [Arguments]    ${order_number}
     Screenshot     id:robot-preview    ${CURDIR}${/}output${/}${order_number}.png
     [Return]       ${CURDIR}${/}output${/}${order_number}.png
     
-Embed the robot screenshot to the receipt PDF file
+Embed the robot screenshot to the receipt PDF file 
     [Arguments]    ${screenshot}   ${pdf}
     Open Pdf       ${pdf}
     Add Watermark Image To Pdf    ${screenshot}    ${pdf}
@@ -65,13 +72,4 @@ Go to order another robot
 Create a ZIP file of the receipts
     Archive Folder With Zip  ${CURDIR}${/}output${/}receipts   ${CURDIR}${/}output${/}receipt.zip
     
-Get orders.csv URL from User
-    Create Form    Orders.csv URL
-    Add Text Input    URL    url
-    &{response}    Request Response
-    [Return]    ${response["url"]}
     
-Get the URL from vault and Open the robot order website
-  ${url}=    Get Secret    website
-    Open Available Browser    ${url}[url]
-    Maximize Browser Window

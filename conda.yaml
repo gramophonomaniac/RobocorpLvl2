@@ -5,5 +5,5 @@ dependencies:
 - pip=20.1
 - numpy=1.20.3
 - pip:
-  - rpaframework==12.1.0
+  - rpaframework==12.2.0
   - robotframework-datadriver==1.4.1
